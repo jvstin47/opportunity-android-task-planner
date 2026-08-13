@@ -1,0 +1,10 @@
+sdk.dir=/Users/YOUR_USER/Library/Android/sdk
+
+# Anthropic API key used by the on-device AI layer (NLP capture parsing,
+# task decomposition, prioritization suggestions, summarization/reflection).
+# Get one at https://console.anthropic.com/ -- never commit this file.
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Base URL of the backend/ sync service (see backend/README.md).
+# 10.0.2.2 is how the Android emulator reaches your host machine's localhost.
+OPPORTUNITY_SYNC_BASE_URL=http://10.0.2.2:4000/

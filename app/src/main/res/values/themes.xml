@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Redesign is dark-only (see ui/theme/Theme.kt): the system-level theme must match,
+         otherwise there's a white flash before Compose content renders on cold start. -->
+    <style name="Theme.Opportunity" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0F131D</item>
+    </style>
+    <style name="Theme.Opportunity.Transparent" parent="Theme.Opportunity">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

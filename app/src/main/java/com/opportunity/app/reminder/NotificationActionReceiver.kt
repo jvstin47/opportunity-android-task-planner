@@ -1,0 +1,59 @@
+package com.opportunity.app.reminder
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import androidx.core.app.NotificationManagerCompat
+import com.opportunity.app.data.local.reminder
+import com.opportunity.app.data.local.withReminder
+import com.opportunity.app.data.repository.OpportunityRepository
+import com.opportunity.app.ui.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+/** Section 13 "Notifications should be interactive": Start / Snooze / Reschedule actions. */
+@AndroidEntryPoint
+class NotificationActionReceiver : BroadcastReceiver() {
+
+    @Inject lateinit var repository: OpportunityRepository
+
+    override fun onReceive(context: Context, intent: Intent) {
+        val opportunityId = intent.getStringExtra(EXTRA_OPPORTUNITY_ID) ?: return
+        NotificationManagerCompat.from(context).cancel(opportunityId.hashCode())
+
+        when (intent.action) {
+            ACTION_SNOOZE -> CoroutineScope(Dispatchers.IO).launch {
+                repository.postpone(opportunityId)
+                val opp = repository.getById(opportunityId) ?: return@launch
+                val reminder = opp.reminder()
+                repository.save(
+                    opp.withReminder(reminder.copy(nextReminderEpochMillis = System.currentTimeMillis() + 60 * 60_000L))
+                )
+            }
+            ACTION_RESCHEDULE -> {
+                val launch = Intent(context, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    data = android.net.Uri.parse("opportunity://opportunity/$opportunityId?edit=deadline")
+                }
+                context.startActivity(launch)
+            }
+            ACTION_START -> {
+                val launch = Intent(context, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    data = android.net.Uri.parse("opportunity://opportunity/$opportunityId?start=true")
+                }
+                context.startActivity(launch)
+            }
+        }
+    }
+
+    companion object {
+        const val ACTION_START = "com.opportunity.app.action.START"
+        const val ACTION_SNOOZE = "com.opportunity.app.action.SNOOZE"
+        const val ACTION_RESCHEDULE = "com.opportunity.app.action.RESCHEDULE"
+        const val EXTRA_OPPORTUNITY_ID = "opportunity_id"
+    }
+}

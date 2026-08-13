@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Opportunity</string>
+    <string name="tile_quick_add">Add Opportunity</string>
+    <string name="widget_right_now_title">What should I do next?</string>
+    <string name="notif_channel_reminders">Reminders</string>
+    <string name="notif_channel_urgent">Urgent deadlines</string>
+    <string name="action_start">Start</string>
+    <string name="action_snooze">Snooze</string>
+    <string name="action_reschedule">Reschedule</string>
+</resources>

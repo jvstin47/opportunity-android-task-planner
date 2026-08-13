@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Section 20/21: backend exists only for V3 cross-device sync -- the Android app is fully
+// functional offline against its own Room database without this service.
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  createdAt    DateTime      @default(now())
+  opportunities Opportunity[]
+}
+
+model Opportunity {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id])
+  clientId               String // the Room-side UUID, stable across devices
+  title                  String
+  description            String    @default("")
+  type                   String
+  status                 String
+  priorityBucket         String?
+  userPriority           Int?
+  importance             Int       @default(0)
+  urgency                Int       @default(0)
+  deadlineEpochMillis    BigInt?
+  preferredTimeMinuteOfDay Int?
+  estimatedDurationMinutes Int?
+  actualDurationMinutes  Int       @default(0)
+  timerMode              String    @default("COUNTDOWN")
+  sessionPlanJson        String?
+  reminderJson           String?
+  recurrenceJson         String?
+  parentProjectId        String?
+  goalId                 String?
+  category               String?
+  locationHint           String?
+  completionPercent      Int       @default(0)
+  postponementCount      Int       @default(0)
+  lastPostponedEpochMillis BigInt?
+  sortOrderInParent      Int       @default(0)
+  createdAtEpochMillis   BigInt
+  updatedAtEpochMillis   BigInt
+  completedAtEpochMillis BigInt?
+  deletedLocally         Boolean   @default(false)
+
+  @@unique([userId, clientId])
+  @@index([userId, updatedAtEpochMillis])
+}
