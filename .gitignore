@@ -17,3 +17,6 @@ backend/dist/
 backend/.env
 *.log
 
+# Ad-hoc device screenshots taken during development/testing -- never a real project asset
+/*.png
+
