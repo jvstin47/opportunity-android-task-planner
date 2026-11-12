@@ -211,7 +211,7 @@ fun TimerScreen(
                         iconTint = MaterialTheme.colorScheme.primary,
                         label = "Deep Work Today",
                         value = todayFocused,
-                        subtitle = "$completedToday tasks done",
+                        subtitle = "$completedToday ${if (completedToday == 1) "task" else "tasks"} done",
                         modifier = Modifier.weight(1f)
                     )
                     TimerMicroStatCard(

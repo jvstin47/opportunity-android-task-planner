@@ -5,6 +5,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -346,7 +348,9 @@ fun ProjectDetailScreen(
                                     .height(6.dp)
                                     .clip(RoundedCornerShape(3.dp)),
                                 color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                gapSize = 0.dp,
+                                drawStopIndicator = {}
                             )
                         }
 
@@ -476,7 +480,7 @@ private fun MetaTag(icon: androidx.compose.ui.graphics.vector.ImageVector, text:
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun EditOpportunitySheet(
     opportunity: OpportunityEntity,
@@ -552,7 +556,8 @@ private fun EditOpportunitySheet(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Title") },
-                singleLine = true,
+                minLines = 1,
+                maxLines = 3,
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -572,9 +577,9 @@ private fun EditOpportunitySheet(
             )
 
             Text("Type", style = MaterialTheme.typography.labelLarge)
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 OpportunityType.entries.forEach { t ->
                     FilterChip(
@@ -589,9 +594,9 @@ private fun EditOpportunitySheet(
             }
 
             Text("Priority", style = MaterialTheme.typography.labelLarge)
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(
                     PriorityBucket.DO_SOON to "Do Soon",
@@ -613,9 +618,9 @@ private fun EditOpportunitySheet(
             }
 
             Text("Estimated Duration", style = MaterialTheme.typography.labelLarge)
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(15, 30, 45, 60, 90).forEach { mins ->
                     FilterChip(
@@ -630,9 +635,9 @@ private fun EditOpportunitySheet(
             }
 
             Text("Deadline", style = MaterialTheme.typography.labelLarge)
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 FilterChip(
                     selected = deadlineDate == today,
@@ -669,9 +674,9 @@ private fun EditOpportunitySheet(
             }
 
             Text("Reminder & Recurrence", style = MaterialTheme.typography.labelLarge)
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(null to "No reminder", 120 to "Every 2h", 1440 to "Daily reminder").forEach { (mins, label) ->
                     FilterChip(
@@ -684,9 +689,9 @@ private fun EditOpportunitySheet(
                     )
                 }
             }
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(
                     RecurrenceFrequency.NONE to "One-time",

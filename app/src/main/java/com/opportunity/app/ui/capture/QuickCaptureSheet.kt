@@ -10,6 +10,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -91,7 +94,7 @@ fun QuickCaptureSheet(
             CaptureInputBar(isParsing = isParsing, onSubmit = viewModel::capture)
 
             Text(
-                "UNPROCESSED INBOX · ${inboxItems.size} ITEMS",
+                "UNPROCESSED INBOX · ${inboxItems.size} ${if (inboxItems.size == 1) "ITEM" else "ITEMS"}",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -136,6 +139,7 @@ private fun CaptureInputBar(
     var highPriority by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val voiceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val spoken = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
         if (!spoken.isNullOrBlank()) onSubmit(spoken, dueToday, highPriority)
@@ -148,6 +152,7 @@ private fun CaptureInputBar(
             text = ""
             dueToday = false
             highPriority = false
+            keyboardController?.hide()
         }
     }
 
@@ -226,6 +231,7 @@ private val URGENCY_OPTIONS = listOf(
     PriorityBucket.SOMEDAY to "Someday"
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TriageCard(
     item: OpportunityEntity,
@@ -241,11 +247,17 @@ private fun TriageCard(
             Row(verticalAlignment = Alignment.Top) {
                 Box(
                     modifier = Modifier
-                        .padding(top = 2.dp, end = 12.dp)
-                        .size(20.dp)
-                        .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                        .clickable(onClick = onComplete)
-                )
+                        .padding(end = 8.dp)
+                        .size(28.dp)
+                        .clickable(onClick = onComplete),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                    )
+                }
                 Text(
                     item.title,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
@@ -261,9 +273,10 @@ private fun TriageCard(
                 }
             }
 
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 12.dp).horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 12.dp)
             ) {
                 QUICK_TYPES.forEach { (type, label) ->
                     FilterChip(
@@ -283,9 +296,10 @@ private fun TriageCard(
                 color = if (item.priorityBucket == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 12.dp)
             )
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 4.dp).horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 4.dp)
             ) {
                 URGENCY_OPTIONS.forEach { (bucket, label) ->
                     FilterChip(
@@ -309,9 +323,10 @@ private fun TriageCard(
                 color = if (deadlineDate == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 12.dp)
             )
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 4.dp).horizontalScroll(rememberScrollState())
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 4.dp)
             ) {
                 FilterChip(
                     selected = deadlineDate == today,

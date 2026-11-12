@@ -63,7 +63,8 @@ class MainActivity : ComponentActivity() {
         if (intent == null) return null
         val data = intent.data
         val lastSegment = data?.pathSegments?.lastOrNull()
-        val openCapture = intent.getBooleanExtra(EXTRA_OPEN_CAPTURE, false) || lastSegment == "quick-add"
+        val openCapture = intent.getBooleanExtra(EXTRA_OPEN_CAPTURE, false) ||
+            (data?.scheme == "opportunity" && (data.host == "quick-add" || lastSegment == "quick-add"))
         if (openCapture) {
             return LaunchDirective(openCapture = true)
         }
