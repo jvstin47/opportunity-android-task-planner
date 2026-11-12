@@ -5,6 +5,7 @@
     <string name="widget_right_now_title">What should I do next?</string>
     <string name="notif_channel_reminders">Reminders</string>
     <string name="notif_channel_urgent">Urgent deadlines</string>
+    <string name="notif_channel_timer">Focus timer (silent)</string>
     <string name="action_start">Start</string>
     <string name="action_snooze">Snooze</string>
     <string name="action_reschedule">Reschedule</string>

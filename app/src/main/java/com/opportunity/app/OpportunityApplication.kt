@@ -49,10 +49,23 @@ class OpportunityApplication : Application(), Configuration.Provider {
                 NotificationManager.IMPORTANCE_HIGH
             )
         )
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_TIMER,
+                getString(R.string.notif_channel_timer),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+                enableLights(false)
+                setShowBadge(false)
+            }
+        )
     }
 
     companion object {
         const val CHANNEL_REMINDERS = "reminders"
         const val CHANNEL_URGENT = "urgent_deadlines"
+        const val CHANNEL_TIMER = "focus_timer_silent"
     }
 }
