@@ -21,12 +21,12 @@ class AdaptiveReminderUseCase @Inject constructor() {
             Duration.between(now, Instant.ofEpochMilli(it)).toHours()
         }
 
-        if (hoursToDeadline != null && hoursToDeadline in 0..36) {
+        if (hoursToDeadline != null && hoursToDeadline <= 36) {
             val remaining = opportunity.estimatedDurationMinutes
             val remainingText = remaining?.let { "~$it minutes estimated remaining" } ?: "deadline approaching"
             return ReminderContent(
                 title = "⚠️ ${opportunity.title}",
-                body = "Due ${if (hoursToDeadline <= 24) "today" else "tomorrow"} · $remainingText",
+                body = "Due ${if (hoursToDeadline < 0) "overdue" else if (hoursToDeadline <= 24) "today" else "tomorrow"} · $remainingText",
                 level = EscalationLevel.URGENT
             )
         }

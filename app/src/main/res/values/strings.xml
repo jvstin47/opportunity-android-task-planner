@@ -8,4 +8,10 @@
     <string name="action_start">Start</string>
     <string name="action_snooze">Snooze</string>
     <string name="action_reschedule">Reschedule</string>
+    <string name="action_complete">Done</string>
+    <string name="widget_task_list_title">Task List</string>
+    <string name="widget_quick_add_title">Quick Add</string>
+    <string name="widget_progress_title">Daily Progress</string>
+    <string name="widget_streak_title">Streak &amp; Momentum</string>
+    <string name="widget_upcoming_title">Upcoming Deadlines</string>
 </resources>

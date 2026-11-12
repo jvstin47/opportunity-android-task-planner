@@ -17,10 +17,19 @@ class SyncRepository @Inject constructor(
     private val tokenStore: AuthTokenStore,
     private val opportunityDao: OpportunityDao
 ) {
+    suspend fun isConnected(): Boolean = tokenStore.token() != null
+
+    suspend fun connectedEmail(): String? = tokenStore.email()
+
+    suspend fun lastSyncEpochMillis(): Long = tokenStore.lastSyncEpochMillis()
+
+    suspend fun disconnect() = tokenStore.clear()
+
     suspend fun ensureLoggedIn(email: String) {
         if (tokenStore.token() != null) return
         val response = api.devLogin(DevLoginRequest(email))
         tokenStore.saveToken(response.token)
+        tokenStore.saveEmail(email)
     }
 
     suspend fun syncNow(): Result<Unit> = withContext(Dispatchers.IO) {
@@ -38,7 +47,19 @@ class SyncRepository @Inject constructor(
 
             val since = tokenStore.lastSyncEpochMillis()
             val pullResponse = api.pull(bearer, since)
-            opportunityDao.upsertAll(pullResponse.opportunities.map { it.toEntity() })
+            val remoteEntities = pullResponse.opportunities.map { it.toEntity() }
+            val merged = remoteEntities.mapNotNull { remote ->
+                val local = opportunityDao.getById(remote.id)
+                when {
+                    local == null -> remote // new from server
+                    local.isDirty -> null // local has unsaved changes, don't overwrite
+                    remote.updatedAtEpochMillis > local.updatedAtEpochMillis -> remote // server is newer
+                    else -> null // local is same or newer, skip
+                }
+            }
+            if (merged.isNotEmpty()) {
+                opportunityDao.upsertAll(merged)
+            }
             tokenStore.saveLastSync(pullResponse.serverTimeEpochMillis)
         }
     }

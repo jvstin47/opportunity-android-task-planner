@@ -43,13 +43,12 @@ class TodayPlanUseCase @Inject constructor(
         val candidates = repository.observeAllActionable().first()
             .filter { it.status == OpportunityStatus.ACTIVE || it.status == OpportunityStatus.IN_PROGRESS }
 
-        val (dueToday, rest) = candidates.partition {
+        val (dueOrOverdue, rest) = candidates.partition {
             it.deadlineEpochMillis != null &&
-                it.deadlineEpochMillis >= startOfDay.toEpochMilli() &&
                 it.deadlineEpochMillis < endOfDay.toEpochMilli()
         }
 
-        val mustHappen = dueToday.sortedBy { it.deadlineEpochMillis }
+        val mustHappen = dueOrOverdue.sortedBy { it.deadlineEpochMillis }
 
         val scoredRest = rest
             .map { it to scorer.score(it, availableMinutes = null, now = now) }

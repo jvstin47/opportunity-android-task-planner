@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.os.Build
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.opportunity.app.timer.TimerController
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -13,6 +14,13 @@ import javax.inject.Inject
 class OpportunityApplication : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
+
+    // Constructing this eagerly (rather than lazily on first screen that happens to need it) is
+    // what makes TimerController.init's rehydration actually run on every cold start -- otherwise
+    // a process killed mid-timer (common on OEM battery managers) reopens straight to whichever
+    // tab the user lands on, nothing ever touches TimerController, and the running timer is lost
+    // even though it was persisted correctly.
+    @Inject lateinit var timerController: TimerController
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

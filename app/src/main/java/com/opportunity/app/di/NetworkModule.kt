@@ -1,8 +1,8 @@
 package com.opportunity.app.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.opportunity.app.BuildConfig
 import com.opportunity.app.ai.AnthropicApi
+import com.opportunity.app.config.AppConfig
 import com.opportunity.app.sync.SyncApi
 import dagger.Module
 import dagger.Provides
@@ -27,7 +27,7 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
+            level = if (AppConfig.isDebug) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
         }
         return OkHttpClient.Builder()
             .addInterceptor(logging)
@@ -56,7 +56,7 @@ object NetworkModule {
     @Named("sync")
     fun provideSyncRetrofit(client: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BuildConfig.OPPORTUNITY_SYNC_BASE_URL)
+            .baseUrl(AppConfig.syncBaseUrl)
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()

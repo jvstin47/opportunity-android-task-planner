@@ -57,8 +57,11 @@ interface OpportunityDao {
     @Query("SELECT * FROM opportunities WHERE parentProjectId = :projectId AND deletedLocally = 0 ORDER BY sortOrderInParent ASC")
     fun observeChildren(projectId: String): Flow<List<OpportunityEntity>>
 
-    @Query("SELECT * FROM opportunities WHERE status = 'COMPLETED' AND completedAtEpochMillis BETWEEN :startEpochMillis AND :endEpochMillis")
+    @Query("SELECT * FROM opportunities WHERE status = 'COMPLETED' AND deletedLocally = 0 AND completedAtEpochMillis BETWEEN :startEpochMillis AND :endEpochMillis ORDER BY completedAtEpochMillis DESC")
     suspend fun getCompletedBetween(startEpochMillis: Long, endEpochMillis: Long): List<OpportunityEntity>
+
+    @Query("SELECT * FROM opportunities WHERE status = 'COMPLETED' AND deletedLocally = 0 AND completedAtEpochMillis BETWEEN :startEpochMillis AND :endEpochMillis ORDER BY completedAtEpochMillis DESC")
+    fun observeCompletedBetween(startEpochMillis: Long, endEpochMillis: Long): Flow<List<OpportunityEntity>>
 
     @Query("SELECT * FROM opportunities WHERE postponementCount >= :threshold AND deletedLocally = 0 ORDER BY postponementCount DESC")
     fun observeFrequentlyPostponed(threshold: Int = 3): Flow<List<OpportunityEntity>>
@@ -72,6 +75,13 @@ interface OpportunityDao {
            WHERE id = :id"""
     )
     suspend fun markCompleted(id: String, nowEpochMillis: Long)
+
+    @Query(
+        """UPDATE opportunities SET status = 'ACTIVE', completionPercent = 0,
+           completedAtEpochMillis = NULL, updatedAtEpochMillis = :nowEpochMillis, isDirty = 1
+           WHERE id = :id"""
+    )
+    suspend fun markReopened(id: String, nowEpochMillis: Long)
 
     @Query("UPDATE opportunities SET deletedLocally = 1, isDirty = 1, updatedAtEpochMillis = :nowEpochMillis WHERE id = :id")
     suspend fun softDelete(id: String, nowEpochMillis: Long)
@@ -87,4 +97,17 @@ interface OpportunityDao {
 
     @Query("SELECT COUNT(*) FROM opportunities WHERE status = 'INBOX' AND deletedLocally = 0")
     fun observeInboxCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM opportunities WHERE status = 'INBOX' AND deletedLocally = 0")
+    suspend fun getInboxCount(): Int
+
+    @Query(
+        """SELECT * FROM opportunities
+           WHERE deletedLocally = 0
+             AND status IN ('ACTIVE', 'IN_PROGRESS')
+             AND deadlineEpochMillis IS NOT NULL
+           ORDER BY deadlineEpochMillis ASC
+           LIMIT :limit"""
+    )
+    suspend fun getUpcomingDeadlines(limit: Int = 5): List<OpportunityEntity>
 }

@@ -20,6 +20,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): OpportunityDatabase =
         Room.databaseBuilder(context, OpportunityDatabase::class.java, OpportunityDatabase.DATABASE_NAME)
+            .addMigrations(OpportunityDatabase.MIGRATION_1_2)
             .fallbackToDestructiveMigration() // acceptable pre-1.0; replace with real migrations before shipping
             .build()
 

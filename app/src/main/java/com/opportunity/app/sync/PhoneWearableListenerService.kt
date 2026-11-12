@@ -8,7 +8,10 @@ import com.opportunity.app.domain.usecase.RightNowUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,10 +21,7 @@ import javax.inject.Inject
 data class WearRightNow(val id: String?, val title: String?, val estimatedMinutes: Int?)
 
 /**
- * Section 26 "Wear OS support": the watch has no local database of its own -- it asks the phone
- * for the current Right Now recommendation over the Wearable MessageClient, and can send back a
- * "complete" action. Request/response is simpler and more robust for this use case than trying
- * to keep a full DataLayer replica in sync.
+ * Wear OS companion bridge over Google Play Services Wearable MessageClient.
  */
 @AndroidEntryPoint
 class PhoneWearableListenerService : WearableListenerService() {
@@ -30,24 +30,39 @@ class PhoneWearableListenerService : WearableListenerService() {
     @Inject lateinit var repository: OpportunityRepository
 
     private val json = Json { encodeDefaults = true }
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMessageReceived(event: MessageEvent) {
         when (event.path) {
             PATH_REQUEST_RIGHT_NOW -> scope.launch {
-                val recommendation = rightNowUseCase.recommend(availableMinutes = 60)
-                val payload = WearRightNow(
-                    id = recommendation.best?.id,
-                    title = recommendation.best?.title,
-                    estimatedMinutes = recommendation.best?.estimatedDurationMinutes
-                )
-                Wearable.getMessageClient(this@PhoneWearableListenerService)
-                    .sendMessage(event.sourceNodeId, PATH_RIGHT_NOW_RESPONSE, json.encodeToString(payload).toByteArray())
+                runCatching {
+                    val recommendation = rightNowUseCase.recommend(availableMinutes = 60)
+                    val payload = WearRightNow(
+                        id = recommendation.best?.id,
+                        title = recommendation.best?.title,
+                        estimatedMinutes = recommendation.best?.estimatedDurationMinutes
+                    )
+                    Wearable.getMessageClient(this@PhoneWearableListenerService)
+                        .sendMessage(
+                            event.sourceNodeId,
+                            PATH_RIGHT_NOW_RESPONSE,
+                            json.encodeToString(payload).toByteArray()
+                        )
+                        .await()
+                }
             }
             PATH_COMPLETE_OPPORTUNITY -> scope.launch {
-                repository.complete(String(event.data))
+                val id = String(event.data).trim()
+                if (id.isNotBlank()) {
+                    runCatching { repository.complete(id) }
+                }
             }
         }
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
     }
 
     companion object {

@@ -8,12 +8,14 @@ import com.opportunity.app.ai.TaskDecomposer
 import com.opportunity.app.data.local.OpportunityDateHelpers.tomorrowMorningEpochMillis
 import com.opportunity.app.data.local.entity.OpportunityEntity
 import com.opportunity.app.data.local.withRecurrence
+import com.opportunity.app.data.local.withReminder
 import com.opportunity.app.data.repository.OpportunityRepository
 import com.opportunity.app.domain.model.OpportunityStatus
 import com.opportunity.app.domain.model.OpportunityType
 import com.opportunity.app.domain.model.PriorityBucket
 import com.opportunity.app.domain.model.RecurrenceFrequency
 import com.opportunity.app.domain.model.RecurrenceRule
+import com.opportunity.app.domain.model.ReminderConfig
 import com.opportunity.app.domain.usecase.PostponementAction
 import com.opportunity.app.domain.usecase.PostponementAdvisor
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,6 +56,10 @@ class ProjectDetailViewModel @Inject constructor(
 
     fun complete() = viewModelScope.launch { repository.complete(opportunityId) }
 
+    fun reopen() = viewModelScope.launch { repository.reopen(opportunityId) }
+
+    fun deleteItem() = viewModelScope.launch { repository.delete(opportunityId) }
+
     /**
      * Section 11 "Postponement Intelligence": the first couple postpones stay silent (see
      * PostponementAdvisor) -- only once the tier warrants it does a prompt surface, so tapping
@@ -91,23 +97,85 @@ class ProjectDetailViewModel @Inject constructor(
         dismissPostponementPrompt()
     }
 
-    fun setType(type: OpportunityType) = viewModelScope.launch {
-        repository.getById(opportunityId)?.let { repository.save(it.copy(type = type)) }
+    fun updateDetails(
+        title: String,
+        description: String,
+        category: String?,
+        type: OpportunityType,
+        priorityBucket: PriorityBucket?,
+        estimatedDurationMinutes: Int?,
+        deadlineEpochMillis: Long?,
+        reminderFrequencyMinutes: Int?,
+        recurrenceFrequency: RecurrenceFrequency
+    ) = viewModelScope.launch {
+        val current = repository.getById(opportunityId) ?: return@launch
+        val trimmedTitle = title.trim().ifBlank { current.title }
+        val cleanCategory = category?.trim()?.takeIf { it.isNotBlank() }
+        val userPriority = when (priorityBucket) {
+            PriorityBucket.DO_SOON -> 1
+            PriorityBucket.SHOULD_DO -> 3
+            PriorityBucket.GROW, PriorityBucket.EXPLORE, PriorityBucket.PERSONAL, PriorityBucket.SOMEDAY -> 5
+            null -> current.userPriority
+        }
+        var updated = current.copy(
+            title = trimmedTitle,
+            description = description.trim(),
+            category = cleanCategory,
+            type = type,
+            status = if (current.status == OpportunityStatus.INBOX) OpportunityStatus.ACTIVE else current.status,
+            priorityBucket = priorityBucket,
+            userPriority = userPriority,
+            estimatedDurationMinutes = estimatedDurationMinutes?.coerceIn(1, 480),
+            deadlineEpochMillis = deadlineEpochMillis
+        )
+        updated = if (reminderFrequencyMinutes != null && reminderFrequencyMinutes > 0) {
+            updated.withReminder(
+                ReminderConfig(
+                    enabled = true,
+                    frequencyMinutes = reminderFrequencyMinutes,
+                    nextReminderEpochMillis = System.currentTimeMillis() + reminderFrequencyMinutes * 60_000L
+                )
+            )
+        } else {
+            updated.withReminder(ReminderConfig(enabled = false))
+        }
+        updated = updated.withRecurrence(RecurrenceRule(frequency = recurrenceFrequency))
+        repository.save(updated)
     }
 
-    fun setEstimatedMinutes(minutes: Int) = viewModelScope.launch {
-        repository.getById(opportunityId)?.let { repository.save(it.copy(estimatedDurationMinutes = minutes)) }
+    fun addSubtask(title: String) = viewModelScope.launch {
+        val trimmed = title.trim()
+        if (trimmed.isBlank()) return@launch
+        val parent = repository.getById(opportunityId) ?: return@launch
+        if (parent.type != OpportunityType.PROJECT) {
+            repository.save(parent.copy(type = OpportunityType.PROJECT, status = OpportunityStatus.ACTIVE))
+        }
+        val nextOrder = uiState.value.children.size
+        repository.save(
+            OpportunityEntity(
+                title = trimmed,
+                type = OpportunityType.TASK,
+                status = OpportunityStatus.ACTIVE,
+                priorityBucket = parent.priorityBucket ?: PriorityBucket.SHOULD_DO,
+                category = parent.category,
+                parentProjectId = opportunityId,
+                sortOrderInParent = nextOrder
+            )
+        )
+    }
+
+    fun toggleChildComplete(child: OpportunityEntity) = viewModelScope.launch {
+        if (child.status == OpportunityStatus.COMPLETED) {
+            repository.reopen(child.id)
+        } else {
+            repository.complete(child.id)
+        }
     }
 
     /**
      * Section 2.5 "Triage actions from Inbox": manual path for moving an item out of Inbox and
      * onto Today without waiting on AI enrichment -- capture must work whether or not AI is
      * configured (section 21 offline-first).
-     *
-     * Deliberately a single read-modify-write: firing setEstimatedMinutes/setUserPriority/
-     * addToTodayWithDeadline as three independent getById-copy-save calls raced each other (each
-     * read a stale snapshot and clobbered the others' writes) -- found live on-device, not in
-     * review. One combined save avoids that class of bug entirely.
      */
     fun addToToday(minutes: Int, priority: Int, dueToday: Boolean) = viewModelScope.launch {
         val opportunity = repository.getById(opportunityId) ?: return@launch

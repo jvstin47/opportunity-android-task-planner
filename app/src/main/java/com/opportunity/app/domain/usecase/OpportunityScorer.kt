@@ -51,7 +51,7 @@ class OpportunityScorer @Inject constructor() {
             }
         } ?: 0.0
 
-        val timeFit = if (availableMinutes != null && opportunity.estimatedDurationMinutes != null) {
+        val timeFit = if (availableMinutes != null && opportunity.estimatedDurationMinutes != null && opportunity.estimatedDurationMinutes > 0) {
             val est = opportunity.estimatedDurationMinutes
             when {
                 est > availableMinutes -> 0.0 // doesn't fit at all

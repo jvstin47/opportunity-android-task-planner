@@ -11,8 +11,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 
@@ -30,27 +32,54 @@ class MainActivity : ComponentActivity() {
                 val state by viewModel.uiState.collectAsState()
 
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(12.dp),
+                    modifier = Modifier.fillMaxSize().padding(14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text("RIGHT NOW", style = MaterialTheme.typography.caption2)
-                    Text(
-                        state.title ?: "Nothing urgent",
-                        style = MaterialTheme.typography.title3,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                    state.estimatedMinutes?.let {
-                        Text("~$it min", style = MaterialTheme.typography.body2)
-                    }
-                    if (state.opportunityId != null) {
-                        Button(
-                            onClick = { viewModel.complete() },
-                            modifier = Modifier.padding(top = 12.dp)
-                        ) { Text("Done") }
+                    when {
+                        state.isLoading -> {
+                            CircularProgressIndicator(modifier = Modifier.padding(top = 12.dp))
+                        }
+                        state.error != null -> {
+                            Text(
+                                state.error ?: "",
+                                style = MaterialTheme.typography.body2,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                            Button(onClick = { viewModel.refresh() }) { Text("Retry") }
+                        }
+                        else -> {
+                            Text(
+                                state.title ?: "Nothing urgent",
+                                style = MaterialTheme.typography.title3,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(vertical = 6.dp)
+                            )
+                            state.estimatedMinutes?.let {
+                                Text("~$it min", style = MaterialTheme.typography.body2)
+                            }
+                            if (state.opportunityId != null) {
+                                Button(
+                                    onClick = { viewModel.complete() },
+                                    modifier = Modifier.padding(top = 12.dp)
+                                ) { Text("Done") }
+                            } else {
+                                Button(
+                                    onClick = { viewModel.refresh() },
+                                    modifier = Modifier.padding(top = 10.dp)
+                                ) { Text("Refresh") }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        viewModel.dispose()
+        super.onDestroy()
     }
 }

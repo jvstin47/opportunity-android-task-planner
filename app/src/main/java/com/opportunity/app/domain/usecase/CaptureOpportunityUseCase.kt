@@ -34,8 +34,11 @@ class CaptureOpportunityUseCase @Inject constructor(
         dueToday: Boolean = false,
         highPriority: Boolean = false
     ): OpportunityEntity {
+        val trimmedInput = rawInput.trim()
+        val finalTitle = if (trimmedInput.isBlank()) "Untitled" else trimmedInput
+        
         val draft = OpportunityEntity(
-            title = rawInput,
+            title = finalTitle,
             status = if (dueToday || highPriority) OpportunityStatus.ACTIVE else OpportunityStatus.INBOX,
             deadlineEpochMillis = if (dueToday) endOfTodayEpochMillis() else null,
             priorityBucket = if (highPriority) PriorityBucket.DO_SOON else null,
@@ -72,7 +75,7 @@ class CaptureOpportunityUseCase @Inject constructor(
                     priorityBucket = existing.priorityBucket
                         ?: parsed.priorityBucket?.let { runCatching { PriorityBucket.valueOf(it) }.getOrNull() },
                     deadlineEpochMillis = existing.deadlineEpochMillis ?: deadlineMillis,
-                    estimatedDurationMinutes = existing.estimatedDurationMinutes ?: parsed.estimatedDurationMinutes,
+                    estimatedDurationMinutes = existing.estimatedDurationMinutes ?: parsed.estimatedDurationMinutes?.coerceIn(1, 480),
                     status = OpportunityStatus.ACTIVE
                 )
                 if (parsed.reminderFrequencyMinutes != null || parsed.reminderUntilCompleted) {

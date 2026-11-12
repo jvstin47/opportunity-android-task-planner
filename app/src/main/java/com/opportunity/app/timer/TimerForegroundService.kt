@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,15 +28,21 @@ class TimerForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, buildNotification("Timer running", null))
         job?.cancel()
-        job = timerController.state.onEach { state ->
-            if (state == null || state.runState == TimerRunState.COMPLETED) {
-                stopSelf()
-            } else {
-                val minutes = state.elapsedMinutes
-                val body = state.targetMinutes?.let { "$minutes / $it min" } ?: "$minutes min elapsed"
-                startForeground(NOTIFICATION_ID, buildNotification(state.opportunityTitle, body))
-            }
-        }.launchIn(CoroutineScope(Dispatchers.Default))
+        job = CoroutineScope(Dispatchers.Default).launch {
+            // On a process restart (OS killed the app, e.g. OEM battery managers), the
+            // controller's in-memory state starts null even though a timer was still running --
+            // wait for it to check persisted state before treating null as "nothing to do."
+            timerController.ensureRehydrated()
+            timerController.state.onEach { state ->
+                if (state == null || state.runState == TimerRunState.COMPLETED) {
+                    stopSelf()
+                } else {
+                    val minutes = state.elapsedMinutes
+                    val body = state.targetMinutes?.let { "$minutes / $it min" } ?: "$minutes min elapsed"
+                    startForeground(NOTIFICATION_ID, buildNotification(state.opportunityTitle, body))
+                }
+            }.launchIn(this)
+        }
         return START_STICKY
     }
 

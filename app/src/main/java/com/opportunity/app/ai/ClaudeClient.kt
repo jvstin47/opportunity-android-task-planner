@@ -1,6 +1,7 @@
 package com.opportunity.app.ai
 
-import com.opportunity.app.BuildConfig
+import com.opportunity.app.config.AppConfig
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -13,11 +14,8 @@ sealed class AiResult<out T> {
 }
 
 /**
- * Thin wrapper over the Anthropic Messages API used as Opportunity's "intelligence layer"
- * (section 16): NLP capture parsing, task decomposition, prioritization, and reflection.
- *
- * Requires ANTHROPIC_API_KEY in local.properties (see local.properties.example) or the
- * ANTHROPIC_API_KEY env var at build time -- never hardcode a key here.
+ * Thin wrapper over the Anthropic Messages API used as Opportunity's optional intelligence
+ * layer: NLP capture parsing, task decomposition, and weekly reflection.
  */
 @Singleton
 class ClaudeClient @Inject constructor(
@@ -26,7 +24,7 @@ class ClaudeClient @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
     private val model = "claude-sonnet-5"
 
-    val isConfigured: Boolean get() = BuildConfig.ANTHROPIC_API_KEY.isNotBlank()
+    val isConfigured: Boolean get() = AppConfig.isAiConfigured
 
     suspend fun completeJson(systemPrompt: String, userPrompt: String, maxTokens: Int = 1024): AiResult<String> =
         withContext(Dispatchers.IO) {
@@ -37,7 +35,7 @@ class ClaudeClient @Inject constructor(
             }
             try {
                 val response = api.createMessage(
-                    apiKey = BuildConfig.ANTHROPIC_API_KEY,
+                    apiKey = AppConfig.anthropicApiKey,
                     request = ClaudeMessagesRequest(
                         model = model,
                         max_tokens = maxTokens,
@@ -47,6 +45,8 @@ class ClaudeClient @Inject constructor(
                 )
                 val text = response.text().trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
                 if (text.isBlank()) AiResult.Failure("Empty response from model") else AiResult.Success(text)
+            } catch (c: CancellationException) {
+                throw c
             } catch (t: Throwable) {
                 AiResult.Failure("Claude API call failed: ${t.message}", t)
             }
@@ -61,7 +61,7 @@ class ClaudeClient @Inject constructor(
             }
             try {
                 val response = api.createMessage(
-                    apiKey = BuildConfig.ANTHROPIC_API_KEY,
+                    apiKey = AppConfig.anthropicApiKey,
                     request = ClaudeMessagesRequest(
                         model = model,
                         max_tokens = maxTokens,
@@ -69,7 +69,10 @@ class ClaudeClient @Inject constructor(
                         messages = listOf(ClaudeMessage(role = "user", content = userPrompt))
                     )
                 )
-                AiResult.Success(response.text().trim())
+                val text = response.text().trim()
+                if (text.isBlank()) AiResult.Failure("Empty response from model") else AiResult.Success(text)
+            } catch (c: CancellationException) {
+                throw c
             } catch (t: Throwable) {
                 AiResult.Failure("Claude API call failed: ${t.message}", t)
             }

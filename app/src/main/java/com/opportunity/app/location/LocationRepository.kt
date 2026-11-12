@@ -21,16 +21,29 @@ data class Coordinates(val latitude: Double, val longitude: Double)
 class LocationRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private var cachedLocation: Coordinates? = null
+    private var cacheTimestamp: Long = 0L
+    private val cacheTtlMs = 2 * 60 * 1000L // 2 minutes
+
     fun hasPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     /** One-shot current location. Returns null if permission is missing or location is unavailable. */
     suspend fun currentLocation(): Coordinates? {
         if (!hasPermission()) return null
+        val now = System.currentTimeMillis()
+        cachedLocation?.let { cached ->
+            if (now - cacheTimestamp < cacheTtlMs) return cached
+        }
         val client = LocationServices.getFusedLocationProviderClient(context)
         return runCatching {
             val location = client.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null).await()
-            location?.let { Coordinates(it.latitude, it.longitude) }
+            location?.let { 
+                val coords = Coordinates(it.latitude, it.longitude)
+                cachedLocation = coords
+                cacheTimestamp = now
+                coords
+            }
         }.getOrNull()
     }
 

@@ -1,15 +1,29 @@
 import express from "express";
-import { authRouter } from "./routes/auth.js";
-import { syncRouter } from "./routes/sync.js";
+import { env } from "./config/env.js";
+import { prisma } from "./db/prisma.js";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { apiRouter } from "./routes/index.js";
 
 const app = express();
-app.use(express.json());
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
-app.use("/auth", authRouter);
-app.use("/sync", syncRouter);
+app.disable("x-powered-by");
+app.use(express.json({ limit: "2mb" }));
 
-const port = Number(process.env.PORT ?? 4000);
-app.listen(port, () => {
-  console.log(`Opportunity sync service listening on :${port}`);
+app.use(apiRouter);
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+const server = app.listen(env.PORT, () => {
+  console.log(`Opportunity sync service (${env.NODE_ENV}) listening on :${env.PORT}`);
 });
+
+async function shutdown(signal: string) {
+  console.log(`Received ${signal}, shutting down gracefully...`);
+  server.close(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));

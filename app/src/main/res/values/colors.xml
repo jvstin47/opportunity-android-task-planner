@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The redesign's real palette lives in ui/theme/Color.kt (Compose). These two are the
-         only colors still needed as XML resources, for the adaptive launcher icon. -->
-    <color name="ic_launcher_background">#5865F2</color>
-    <color name="ic_launcher_foreground_accent">#000DA4</color>
+    <!-- The real palette lives in ui/theme/Color.kt (Compose). These two are the only colors
+         still needed as XML resources, for the adaptive launcher icon. -->
+    <color name="ic_launcher_background">#D9662F</color>
+    <color name="ic_launcher_foreground_accent">#3D1400</color>
 </resources>

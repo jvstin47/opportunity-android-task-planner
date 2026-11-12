@@ -2,39 +2,45 @@ package com.opportunity.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Dark palette lifted directly from the redesign mockups (Material3 tokens).
-val OnErrorContainer = Color(0xFFFFDAD6)
-val OnPrimaryContainer = Color(0xFFFFFDFF)
-val TertiaryContainer = Color(0xFFA46800)
-val OnSurface = Color(0xFFDFE2F1)
-val SurfaceBright = Color(0xFF353944)
-val OnError = Color(0xFF690005)
-val InverseOnSurface = Color(0xFF2C303B)
-val SurfaceContainer = Color(0xFF1C1F2A)
-val Tertiary = Color(0xFFFFB95F)
-val Background = Color(0xFF0F131D)
-val SecondaryContainer = Color(0xFF00A572)
-val InversePrimary = Color(0xFF3F4CDA)
-val OnTertiaryContainer = Color(0xFFFFFDFF)
-val OnTertiary = Color(0xFF472A00)
-val SurfaceTint = Color(0xFFBEC2FF)
-val OnSecondaryContainer = Color(0xFF00311F)
+// Warm Smoked Atelier palette (Stitch redesign): deep espresso canvas + warm stone surfaces,
+// sage tertiary for calm confirmation/sync cues, and terracotta secondary for subtle warmth.
+val Background = Color(0xFF17130E)
+val Surface = Color(0xFF17130E)
+val SurfaceDim = Color(0xFF17130E)
+val SurfaceBright = Color(0xFF3E3832)
+val SurfaceContainerLowest = Color(0xFF120D09)
+val SurfaceContainerLow = Color(0xFF201B16)
+val SurfaceContainer = Color(0xFF241F1A)
+val SurfaceContainerHigh = Color(0xFF2F2924)
+val SurfaceContainerHighest = Color(0xFF3A342E)
+val SurfaceVariant = Color(0xFF3A342E)
+
+val OnBackground = Color(0xFFEBE1D8)
+val OnSurface = Color(0xFFEBE1D8)
+val OnSurfaceVariant = Color(0xFFD4C4B0)
+val Outline = Color(0xFF9D8F7C)
+val OutlineVariant = Color(0xFF504535)
+val InverseSurface = Color(0xFFEBE1D8)
+val InverseOnSurface = Color(0xFF352F2A)
+
+// Secondary: warm terracotta
+val Secondary = Color(0xFFFFB4A1)
+val OnSecondary = Color(0xFF5D1805)
+val SecondaryContainer = Color(0xFF7F301B)
+val OnSecondaryContainer = Color(0xFFFFA087)
+
+// Tertiary: calm sage/mint for completion, buffer & sync status
+val Tertiary = Color(0xFFA8DAC0)
+val OnTertiary = Color(0xFF023826)
+val TertiaryContainer = Color(0xFF8DBEA6)
+val OnTertiaryContainer = Color(0xFF1E4E3B)
+
+// Error: distinct soft coral-red for overdue/urgent warnings
 val ErrorColor = Color(0xFFFFB4AB)
-val Primary = Color(0xFFBEC2FF)
-val Surface = Color(0xFF0F131D)
+val OnError = Color(0xFF690005)
 val ErrorContainer = Color(0xFF93000A)
-val SurfaceContainerLow = Color(0xFF171B26)
-val InverseSurface = Color(0xFFDFE2F1)
-val OnBackground = Color(0xFFDFE2F1)
-val SurfaceContainerHigh = Color(0xFF262A35)
-val SurfaceContainerHighest = Color(0xFF313540)
-val OutlineVariant = Color(0xFF454655)
-val SurfaceDim = Color(0xFF0F131D)
-val SurfaceContainerLowest = Color(0xFF0A0E18)
-val SurfaceVariant = Color(0xFF313540)
-val PrimaryContainer = Color(0xFF5865F2)
-val OnSurfaceVariant = Color(0xFFC6C5D7)
-val Secondary = Color(0xFF4EDEA3)
-val Outline = Color(0xFF8F8FA0)
-val OnPrimary = Color(0xFF000DA4)
-val OnSecondary = Color(0xFF003824)
+val OnErrorContainer = Color(0xFFFFDAD6)
+
+// Priority-bucket dots
+val GrowGreen = Color(0xFFA8DAC0)
+val PersonalRose = Color(0xFFD47A96)

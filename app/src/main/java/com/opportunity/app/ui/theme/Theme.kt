@@ -3,18 +3,22 @@ package com.opportunity.app.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 
 /**
- * Redesign palette (August 2026): dark-only, glass-card, indigo/mint/amber accents.
+ * Redesign palette (August 2026): dark-only, warm-neutral base with a single user-selectable
+ * bold accent (see AccentPalette) -- deliberately not the generic indigo/purple "AI tool" look.
  * No light-mode mockup was provided, so this theme is dark-only for now -- forcing dark
  * regardless of system setting rather than shipping a half-finished light variant.
  */
-private val RedesignDarkColors = darkColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainer,
-    onPrimaryContainer = OnPrimaryContainer,
-    inversePrimary = InversePrimary,
+private fun colorsFor(accent: AccentPalette) = darkColorScheme(
+    primary = accent.primary,
+    onPrimary = accent.onPrimary,
+    primaryContainer = accent.primaryContainer,
+    onPrimaryContainer = accent.onPrimaryContainer,
+    inversePrimary = accent.inversePrimary,
     secondary = Secondary,
     onSecondary = OnSecondary,
     secondaryContainer = SecondaryContainer,
@@ -29,7 +33,7 @@ private val RedesignDarkColors = darkColorScheme(
     onSurface = OnSurface,
     surfaceVariant = SurfaceVariant,
     onSurfaceVariant = OnSurfaceVariant,
-    surfaceTint = SurfaceTint,
+    surfaceTint = accent.primary,
     inverseSurface = InverseSurface,
     inverseOnSurface = InverseOnSurface,
     error = ErrorColor,
@@ -51,10 +55,12 @@ private val RedesignDarkColors = darkColorScheme(
 fun OpportunityTheme(
     darkTheme: Boolean = true,
     dynamicColor: Boolean = false,
+    themeViewModel: ThemeViewModel = hiltViewModel(),
     content: @Composable () -> Unit
 ) {
+    val accent by themeViewModel.accent.collectAsState()
     MaterialTheme(
-        colorScheme = RedesignDarkColors,
+        colorScheme = colorsFor(accent),
         typography = OpportunityTypography,
         content = content
     )

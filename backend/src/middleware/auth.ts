@@ -1,27 +1,29 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET;
+import { env } from "../config/env.js";
+import { AppError } from "./errorHandler.js";
 
 export interface AuthedRequest extends Request {
   userId?: string;
 }
 
-export function requireAuth(req: AuthedRequest, res: Response, next: NextFunction) {
-  if (!JWT_SECRET) {
-    res.status(500).json({ error: "Server misconfigured: JWT_SECRET not set" });
-    return;
-  }
+/** Verifies Bearer JWT tokens and attaches `req.userId` for downstream handlers. */
+export function requireAuth(req: AuthedRequest, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Missing bearer token" });
+    next(new AppError(401, "Missing bearer token"));
     return;
   }
   try {
-    const payload = jwt.verify(header.slice("Bearer ".length), JWT_SECRET) as { sub: string };
+    const token = header.slice("Bearer ".length).trim();
+    const payload = jwt.verify(token, env.JWT_SECRET) as { sub?: string };
+    if (!payload.sub) {
+      next(new AppError(401, "Invalid token subject"));
+      return;
+    }
     req.userId = payload.sub;
     next();
   } catch {
-    res.status(401).json({ error: "Invalid or expired token" });
+    next(new AppError(401, "Invalid or expired token"));
   }
 }

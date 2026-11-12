@@ -43,6 +43,7 @@ class ReminderNotifier @Inject constructor(
             )
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
+            .addAction(0, context.getString(R.string.action_complete), actionIntent(opportunityId, NotificationActionReceiver.ACTION_COMPLETE))
             .addAction(0, context.getString(R.string.action_start), actionIntent(opportunityId, NotificationActionReceiver.ACTION_START))
             .addAction(0, context.getString(R.string.action_snooze), actionIntent(opportunityId, NotificationActionReceiver.ACTION_SNOOZE))
             .addAction(0, context.getString(R.string.action_reschedule), actionIntent(opportunityId, NotificationActionReceiver.ACTION_RESCHEDULE))

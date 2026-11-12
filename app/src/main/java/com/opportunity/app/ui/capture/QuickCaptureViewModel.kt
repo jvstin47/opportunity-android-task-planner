@@ -6,6 +6,7 @@ import com.opportunity.app.data.local.entity.OpportunityEntity
 import com.opportunity.app.data.repository.OpportunityRepository
 import com.opportunity.app.domain.model.OpportunityStatus
 import com.opportunity.app.domain.model.OpportunityType
+import com.opportunity.app.domain.model.PriorityBucket
 import com.opportunity.app.domain.usecase.CaptureOpportunityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +59,13 @@ class QuickCaptureViewModel @Inject constructor(
     }
 
     fun setTypeAndActivate(id: String, type: OpportunityType) = mutate(id) {
-        it.copy(type = type, status = OpportunityStatus.ACTIVE)
+        it.copy(
+            type = type,
+            status = OpportunityStatus.ACTIVE,
+            // Every item leaving the Inbox needs an urgency, even if the user hasn't tapped one
+            // yet -- otherwise it silently falls out of Right Now/Today's scoring with no signal.
+            priorityBucket = it.priorityBucket ?: PriorityBucket.SHOULD_DO
+        )
     }
 
     fun adjustDuration(id: String, deltaMinutes: Int) = mutate(id) {
@@ -66,5 +73,19 @@ class QuickCaptureViewModel @Inject constructor(
         it.copy(estimatedDurationMinutes = (current + deltaMinutes).coerceIn(5, 240))
     }
 
+    fun setPriority(id: String, bucket: PriorityBucket) = mutate(id) {
+        it.copy(priorityBucket = bucket, userPriority = when (bucket) {
+            PriorityBucket.DO_SOON -> 1
+            PriorityBucket.SHOULD_DO -> 3
+            else -> 5
+        })
+    }
+
+    fun setDeadline(id: String, epochMillis: Long?) = mutate(id) {
+        it.copy(deadlineEpochMillis = epochMillis)
+    }
+
     fun complete(id: String) = viewModelScope.launch { repository.complete(id) }
+
+    fun delete(id: String) = viewModelScope.launch { repository.delete(id) }
 }

@@ -22,9 +22,8 @@ data class FreeWindow(val startEpochMillis: Long, val endEpochMillis: Long) {
 }
 
 /**
- * Section 14 "Calendar Integration": reads the device's Android/Google calendar via
- * CalendarContract so scheduling and Right Now suggestions respect real constraints
- * (class, gym, etc.) instead of operating independently of the user's actual day.
+ * Reads device calendar instances locally via CalendarContract so scheduling and Focus
+ * suggestions respect real constraints without uploading calendar data.
  */
 @Singleton
 class CalendarRepository @Inject constructor(
@@ -37,34 +36,37 @@ class CalendarRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             if (!hasPermission()) return@withContext emptyList()
 
-            val projection = arrayOf(
-                CalendarContract.Instances.TITLE,
-                CalendarContract.Instances.BEGIN,
-                CalendarContract.Instances.END
-            )
-            val uri = CalendarContract.Instances.CONTENT_URI.buildUpon()
-                .appendPath(startEpochMillis.toString())
-                .appendPath(endEpochMillis.toString())
-                .build()
+            runCatching {
+                val projection = arrayOf(
+                    CalendarContract.Instances.TITLE,
+                    CalendarContract.Instances.BEGIN,
+                    CalendarContract.Instances.END
+                )
+                val uri = CalendarContract.Instances.CONTENT_URI.buildUpon()
+                    .appendPath(startEpochMillis.toString())
+                    .appendPath(endEpochMillis.toString())
+                    .build()
 
-            val events = mutableListOf<CalendarEvent>()
-            context.contentResolver.query(uri, projection, null, null, "${CalendarContract.Instances.BEGIN} ASC")
-                ?.use { cursor ->
-                    val titleIdx = cursor.getColumnIndex(CalendarContract.Instances.TITLE)
-                    val beginIdx = cursor.getColumnIndex(CalendarContract.Instances.BEGIN)
-                    val endIdx = cursor.getColumnIndex(CalendarContract.Instances.END)
-                    while (cursor.moveToNext()) {
-                        events += CalendarEvent(
-                            title = cursor.getString(titleIdx) ?: "Busy",
-                            startEpochMillis = cursor.getLong(beginIdx),
-                            endEpochMillis = cursor.getLong(endIdx)
-                        )
+                val events = mutableListOf<CalendarEvent>()
+                context.contentResolver.query(uri, projection, null, null, "${CalendarContract.Instances.BEGIN} ASC")
+                    ?.use { cursor ->
+                        val titleIdx = cursor.getColumnIndex(CalendarContract.Instances.TITLE)
+                        val beginIdx = cursor.getColumnIndex(CalendarContract.Instances.BEGIN)
+                        val endIdx = cursor.getColumnIndex(CalendarContract.Instances.END)
+                        if (beginIdx < 0 || endIdx < 0) return@use
+                        while (cursor.moveToNext()) {
+                            events += CalendarEvent(
+                                title = if (titleIdx >= 0) cursor.getString(titleIdx) ?: "Busy" else "Busy",
+                                startEpochMillis = cursor.getLong(beginIdx),
+                                endEpochMillis = cursor.getLong(endIdx)
+                            )
+                        }
                     }
-                }
-            events
+                events
+            }.getOrDefault(emptyList())
         }
 
-    /** Section 14/9: gaps between calendar events, used to size realistic "available time" windows. */
+    /** Computes free gaps between calendar events to size realistic available windows. */
     suspend fun freeWindowsBetween(startEpochMillis: Long, endEpochMillis: Long, minGapMinutes: Int = 10): List<FreeWindow> {
         val busy = eventsBetween(startEpochMillis, endEpochMillis).sortedBy { it.startEpochMillis }
         val windows = mutableListOf<FreeWindow>()
