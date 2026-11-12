@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The real palette lives in ui/theme/Color.kt (Compose). These two are the only colors
-         still needed as XML resources, for the adaptive launcher icon. -->
-    <color name="ic_launcher_background">#D9662F</color>
-    <color name="ic_launcher_foreground_accent">#3D1400</color>
+    <!-- Adaptive launcher icon palette aligned with Warm Smoked Atelier (Color.kt). -->
+    <color name="ic_launcher_background">#17130E</color>
+    <color name="ic_launcher_foreground_accent">#FFC665</color>
 </resources>
