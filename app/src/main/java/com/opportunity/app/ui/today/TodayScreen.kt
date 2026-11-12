@@ -432,7 +432,7 @@ private fun CapacityGaugeCard(plan: TodayPlan) {
     val pctText = if (available != null && available > 0) {
         "${((planned.toFloat() / available) * 100).toInt()}% Allocated"
     } else {
-        "${DateFormatting.formatDuration(planned)} Planned"
+        "Calendar Off"
     }
 
     GlassCard(
@@ -601,7 +601,7 @@ private fun BucketSectionCard(
                         color = SurfaceContainerHighest
                     ) {
                         Text(
-                            text = "${items.size} items",
+                            text = "${items.size} ${if (items.size == 1) "item" else "items"}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)

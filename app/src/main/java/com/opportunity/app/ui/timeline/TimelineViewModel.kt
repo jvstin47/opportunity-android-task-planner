@@ -43,6 +43,10 @@ class TimelineViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TimelineUiState(hasCalendarPermission = calendarRepository.hasPermission()))
     val uiState: StateFlow<TimelineUiState> = _uiState.asStateFlow()
 
+    init {
+        refresh()
+    }
+
     fun onCalendarPermissionResult(granted: Boolean) {
         _uiState.update { it.copy(hasCalendarPermission = granted) }
         if (granted) refresh()

@@ -65,6 +65,10 @@ class GrowthViewModel @Inject constructor(
     private val _stats = MutableStateFlow(GrowthStatsState())
     val stats: StateFlow<GrowthStatsState> = _stats.asStateFlow()
 
+    init {
+        loadStats()
+    }
+
     fun loadStats() {
         viewModelScope.launch {
             runCatching {

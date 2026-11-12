@@ -528,7 +528,9 @@ fun SettingsScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                disabledContainerColor = SurfaceContainerHighest,
+                                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
                         ) {
                             if (state.isAddingPlace) {
@@ -677,7 +679,9 @@ fun SettingsScreen(
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                    disabledContainerColor = SurfaceContainerHighest,
+                                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                 )
                             ) {
                                 if (state.isSyncing) {
@@ -753,7 +757,9 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                    disabledContainerColor = SurfaceContainerHighest,
+                                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                 )
                             ) {
                                 if (state.isSyncing) {

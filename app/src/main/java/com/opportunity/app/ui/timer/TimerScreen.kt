@@ -218,11 +218,12 @@ fun TimerScreen(
                         icon = Icons.Filled.Timelapse,
                         iconTint = MaterialTheme.colorScheme.tertiary,
                         label = "Sprint Mode",
-                        value = when (active.mode) {
-                            TimerMode.COUNTDOWN -> "Countdown"
-                            TimerMode.STOPWATCH -> "Stopwatch"
-                            TimerMode.SESSION_BASED -> "Sessions"
-                            TimerMode.TOTAL_PROGRESS -> "Cumulative"
+                        value = when {
+                            active.targetMinutes == null -> "Stopwatch"
+                            active.mode == TimerMode.COUNTDOWN -> "Countdown"
+                            active.mode == TimerMode.STOPWATCH -> "Stopwatch"
+                            active.mode == TimerMode.SESSION_BASED -> "Sessions"
+                            else -> "Cumulative"
                         },
                         subtitle = active.targetMinutes?.let { "${it}m target" } ?: "Open-ended",
                         modifier = Modifier.weight(1f)

@@ -109,8 +109,8 @@ fun RightNowScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 112.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 112.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // Sub-header status + energy badge
         item {
@@ -228,7 +228,9 @@ fun RightNowScreen(
                             label = {
                                 Text(
                                     text = if (mins >= 60) "${mins / 60}h" else "${mins}m",
-                                    style = MaterialTheme.typography.labelLarge
+                                    style = MaterialTheme.typography.labelLarge,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             },
                             shape = CircleShape,
@@ -368,9 +370,9 @@ private fun HeroFocusRecommendationCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 22.dp),
+                .padding(horizontal = 18.dp, vertical = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Top badge row
             Row(
@@ -416,7 +418,7 @@ private fun HeroFocusRecommendationCard(
 
             // Dual concentric glowing ring
             Box(
-                modifier = Modifier.size(184.dp),
+                modifier = Modifier.size(156.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {

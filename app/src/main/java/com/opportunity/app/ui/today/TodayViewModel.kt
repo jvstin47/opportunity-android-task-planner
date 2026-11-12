@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -89,7 +88,6 @@ class TodayViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.observeAllActionable()
-                .drop(1)
                 .collect { loadPlan(showLoading = false) }
         }
     }

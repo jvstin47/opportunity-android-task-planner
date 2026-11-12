@@ -499,13 +499,14 @@ private fun ActiveTimerFloatingBar(
                 )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                IconButton(
-                    onClick = onTogglePause,
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
                         .background(SurfaceContainerHighest)
+                        .clickable(onClick = onTogglePause),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (isPaused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
@@ -514,12 +515,13 @@ private fun ActiveTimerFloatingBar(
                         modifier = Modifier.size(18.dp)
                     )
                 }
-                IconButton(
-                    onClick = onExpand,
+                Box(
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
                         .background(SurfaceContainerHighest)
+                        .clickable(onClick = onExpand),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.OpenInFull,

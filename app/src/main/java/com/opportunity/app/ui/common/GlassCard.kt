@@ -4,24 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Smoked-glass Atelier card with warm surface gradient, optional ambient accent glow,
+ * Smoked-glass Atelier card with warm surface gradient, optional smooth radial ambient glow,
  * soft elevation shadow, and subtle top-left glass sheen.
  */
 @Composable
@@ -34,6 +31,7 @@ fun GlassCard(
     val shape = RoundedCornerShape(cornerRadius)
     val high = MaterialTheme.colorScheme.surfaceContainerHigh
     val low = MaterialTheme.colorScheme.surfaceContainerLow
+    val accent = MaterialTheme.colorScheme.primary
 
     Box(
         modifier = modifier
@@ -52,6 +50,29 @@ fun GlassCard(
                     )
                 )
             )
+            .then(
+                if (ambientGlow) {
+                    Modifier.drawBehind {
+                        val glowCenter = Offset(size.width * 0.90f, size.height * 0.10f)
+                        val glowRadius = (size.maxDimension * 0.65f).coerceAtLeast(180f)
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    accent.copy(alpha = 0.14f),
+                                    accent.copy(alpha = 0.04f),
+                                    Color.Transparent
+                                ),
+                                center = glowCenter,
+                                radius = glowRadius
+                            ),
+                            radius = glowRadius,
+                            center = glowCenter
+                        )
+                    }
+                } else {
+                    Modifier
+                }
+            )
             .border(
                 width = 1.dp,
                 brush = Brush.linearGradient(
@@ -63,16 +84,6 @@ fun GlassCard(
                 shape = shape
             )
     ) {
-        if (ambientGlow) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 24.dp, y = (-24).dp)
-                    .size(120.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape)
-                    .blur(32.dp)
-            )
-        }
         content()
     }
 }
